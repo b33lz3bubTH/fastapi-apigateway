@@ -1,0 +1,58 @@
+from fastapi import APIRouter, Depends
+from typing import Optional
+from pydantic import BaseModel
+from config import config
+import jwt
+import datetime
+
+router = APIRouter()
+
+@router.get("/auth/jwt/refresh")
+async def refreshToken():
+    # JWT: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MTM1MDE4MDMsImRhdGEiOnsibmFtZSI6IiIsInVzZXJuYW1lIjoiIiwicm9sZXMiOlt7InJvbGVfdGl0bGUiOiIiLCJyb2xlX2lkIjowfV19fQ.dTsQ6Gi70odsK_pAwQ0Y08-N5agjLXUd-NjW-Tf6d1g
+    try:
+        jwtToken = request.headers["www-authenticate"]
+        payload = jwt.decode(
+            jwtToken,
+            config.SECRET_KEY,
+            algorithms=[config.ALGORITHM],
+            options={"verify_exp": False},
+        )
+        newJwtToken = jwt.encode({
+                **payload, 
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60)
+            }, config.SECRET_KEY, algorithm=config.ALGORITHM)
+        return {
+            "METHOD": "POST",
+            "URL": "/auth/jwt",
+            "JWT": newJwtToken
+        }
+    except Exception as e:
+        return {
+			"error": {
+				"status": True,
+				"message": str(e),
+				"code": 500
+			}
+		}
+
+
+class APILoginData(BaseModel):
+    username: str
+    browserToken: Optional[str] = None
+    password: str
+@router.post("/auth/jwt")
+async def authentication(inputParam: APILoginData):
+    payload = {
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60),
+        "data": {
+            "name": "",
+            "username": "",
+        }
+    }
+    jwtToken = jwt.encode(payload, config.SECRET_KEY, algorithm=config.ALGORITHM)
+    return {
+        "METHOD": "POST",
+        "URL": "/auth/jwt",
+        "JWT": jwtToken
+    }
