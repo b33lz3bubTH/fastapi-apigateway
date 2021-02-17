@@ -4,7 +4,7 @@ endpoint_definations = {
 		"port": "8000",
 		"auth": {
 			"GET": {
-				"required" : False
+				"required" : True
 			},
 			"POST": {
 				"required" : True
