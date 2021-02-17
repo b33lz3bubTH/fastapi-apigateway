@@ -9,5 +9,7 @@ class APPSettings(BaseSettings):
     ALGORITHM: str = "HS256"
     media_path: str = "/home/sourav/Documents/py-fast-api-gateway/uploads/"
     thumbnail_path: str = "/home/sourav/Documents/py-fast-api-gateway/uploads/thumb/"
+    mongo_database_url: str = ""
+    mysql_database_url: str = ""
 
 config = APPSettings()

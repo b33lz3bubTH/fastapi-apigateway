@@ -45,7 +45,7 @@ async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image
     try:
         imgType = imghdr.what(image.file)
         if not (imgType == "png" or imgType == "jpeg"):
-            raise Exception("Image Files only Allowed (JPEG AND PNG)")
+            raise HTTPException(status_code=404, detail="Image Files only Allowed (JPEG AND PNG)")
         fileName = str(uuid.uuid4()) + '.{}'.format(imgType)
         serverDestination = open(os.path.join(config.media_path, fileName), 'wb+')
         shutil.copyfileobj(image.file, serverDestination)
@@ -57,26 +57,16 @@ async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image
             "thumbnail_preview": "http://{}:{}/media/{}/thumb".format("localhost", "8080",fileName)
         }
     except Exception as e:
-        return {
-			"error": {
-				"status": True,
-				"message": str(e),
-				"code": 500
-			}
-		}
+        return e
     
 @router.get("/media/{imageFileName:str}/{format:str}")
 async def getImage(request: Request, imageFileName: str, format: str):
     try:
+        if not os.path.isfile(config.media_path + imageFileName):
+            raise HTTPException(status_code=404, detail="This File Doesn't Exsits")
         if format == "thumb":
             return FileResponse(config.thumbnail_path + imageFileName)
         return FileResponse(config.media_path + imageFileName)
     except Exception as e:
-        return {
-			"error": {
-				"status": True,
-				"message": str(e),
-				"code": 500
-			}
-		}
+        return e
     

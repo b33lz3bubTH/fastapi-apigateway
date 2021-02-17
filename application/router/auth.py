@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from typing import Optional
 from pydantic import BaseModel
 from config import config
@@ -11,7 +11,12 @@ router = APIRouter()
 @router.get("/auth/jwt/refresh")
 async def refreshToken(request: Request):
     try:
-        jwtToken = request.headers["www-authenticate"]
+        jwtToken = request.headers.get("www-authenticate")
+        if not jwtToken or len(jwtToken) < 10:
+            raise HTTPException(status_code=404, 
+                detail="JWT Required",
+                headers={"www-authenticate": "bearer"}
+            )
         payload = jwt.decode(
             jwtToken,
             config.SECRET_KEY,
@@ -27,15 +32,13 @@ async def refreshToken(request: Request):
             "URL": "/auth/jwt/refresh",
             "JWT": newJwtToken
         }
+    except jwt.exceptions.DecodeError as e:
+        return HTTPException(status_code=500, 
+            detail="JWT Decode Failed",
+            headers={"www-authenticate": "bearer"}
+            )
     except Exception as e:
-        return {
-			"error": {
-				"status": True,
-				"message": str(e),
-				"code": 500
-			}
-		}
-
+        return e
 
 class APILoginData(BaseModel):
     username: str
@@ -44,6 +47,7 @@ class APILoginData(BaseModel):
 @router.post("/auth/jwt")
 async def authentication(inputParam: APILoginData):
     # password verification then doing sending Token
+    # {name: "Sourav", password: "HA$HED", email: "xx@gmail.com", phone: "", address: {} }
     payload = {
         "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60),
         "data": {

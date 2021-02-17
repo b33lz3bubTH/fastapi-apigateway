@@ -32,7 +32,7 @@ class LimitUploadSize(BaseHTTPMiddleware):
                 return Response(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
         return await call_next(request)
 
-app = FastAPI()
+app = FastAPI(title=config.app_name)
 app.add_middleware(LimitUploadSize, max_upload_size=3_000_000)
 
 routerPaths = getRoutes()
@@ -53,23 +53,27 @@ async def GETApiGateway(request: Request, url: str):
 		if endpoint_def:
 			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
 				if(endpoint_def["auth"][method]["required"]):
+					if not request.headers.get("www-authenticate") or len(request.headers.get("www-authenticate")) < 10:
+						raise HTTPException(status_code=404, 
+							detail="JWT Required",
+							headers={"www-authenticate": "bearer"}
+						)
 					jwtToken = request.headers["www-authenticate"]
 					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
-				
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
+			print("FORWADING: ",forwarding_url)
 			req = requests.get(forwarding_url)
 			return json.loads(req.content)
 		else:
-			raise Exception("Route Not Present")
-	
+			raise HTTPException(status_code=404, detail="Route not found")
+
+	except jwt.exceptions.DecodeError as e:
+		return HTTPException(status_code=500, 
+		detail="JWT Decode Failed",
+		headers={"www-authenticate": "bearer"}
+		)
 	except Exception as e:
-		return {
-			"error": {
-				"status": True,
-				"message": str(e),
-				"code": 500
-			}
-		}
+		return e
 
 @app.post("/{url:path}")
 async def POSTApiGateway(request: Request, url: str):
@@ -81,20 +85,23 @@ async def POSTApiGateway(request: Request, url: str):
 		if endpoint_def:
 			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
 				if(endpoint_def["auth"][method]["required"]):
+					if not request.headers.get("www-authenticate") or len(request.headers.get("www-authenticate")) < 10:
+						raise HTTPException(status_code=404, 
+							detail="JWT Required",
+							headers={"www-authenticate": "bearer <TOKEN> Needed"}
+						)
 					jwtToken = request.headers["www-authenticate"]
 					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
 			req = requests.post(forwarding_url, json=jsonable_encoder(inputParam))
 			return json.loads(req.content)
 		else:
-			raise Exception("Route Not Present")
+			raise HTTPException(status_code=404, detail="Route not found")
 
-
+	except jwt.exceptions.DecodeError as e:
+		return HTTPException(status_code=500, 
+			detail="JWT Decode Failed",
+			headers={"www-authenticate": "bearer"}
+			)
 	except Exception as e:
-		return {
-			"error": {
-				"status": True,
-				"message": str(e),
-				"code": 500
-			}
-		}
+		return e
