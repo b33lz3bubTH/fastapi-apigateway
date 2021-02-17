@@ -16,6 +16,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
+from utils import exclusion_check
 
 class LimitUploadSize(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, max_upload_size: int) -> None:
@@ -45,9 +46,10 @@ async def GETApiGateway(request: Request, url: str):
 		endpoint_url = url.split("/")
 		endpoint_def = endpoint_definations.get(endpoint_url[0])
 		if endpoint_def:
-			if(endpoint_def["auth"][method]["required"]):
-				jwtToken = request.headers["www-authenticate"]
-				payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
+			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
+				if(endpoint_def["auth"][method]["required"]):
+					jwtToken = request.headers["www-authenticate"]
+					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
 				
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
 			req = requests.get(forwarding_url)
@@ -72,9 +74,10 @@ async def POSTApiGateway(request: Request, url: str):
 		endpoint_url = url.split("/")
 		endpoint_def = endpoint_definations.get(endpoint_url[0])
 		if endpoint_def:
-			if(endpoint_def["auth"][method]["required"]):
-				jwtToken = request.headers["www-authenticate"]
-				payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
+			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
+				if(endpoint_def["auth"][method]["required"]):
+					jwtToken = request.headers["www-authenticate"]
+					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
 			req = requests.post(forwarding_url, json=jsonable_encoder(inputParam))
 			return json.loads(req.content)

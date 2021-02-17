@@ -1,5 +1,5 @@
 def exclusion_check(exclude_list, URL):
-   for route_def in exclude_list:
+    for route_def in exclude_list:
         route_frags = route_def.split("/")
         i = 0
         flag = True
@@ -13,9 +13,4 @@ def exclusion_check(exclude_list, URL):
             i += 1
         if flag:
             return True
-    finally:
-    	return False
-
-
-
-print(exclusion_check(["admin/:id/posts/:pid"], "admin/100/posts/200".split("/")))
+    return False
