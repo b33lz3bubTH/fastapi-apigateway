@@ -9,7 +9,7 @@ import json
 from endpoint_definations import endpoint_definations
 from config import config
 import jwt
-
+import os
 from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -32,12 +32,17 @@ class LimitUploadSize(BaseHTTPMiddleware):
                 return Response(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
         return await call_next(request)
 
-app = FastAPI(debug=True)
+app = FastAPI()
 app.add_middleware(LimitUploadSize, max_upload_size=3_000_000)
 
 routerPaths = getRoutes()
 for routerPath in routerPaths:
 	app.include_router(routerPath)
+
+if not os.path.isdir(config.media_path):
+	os.mkdir(config.media_path)
+if not os.path.isdir(config.thumbnail_path):
+	os.mkdir(config.thumbnail_path)
 
 @app.get("/{url:path}")
 async def GETApiGateway(request: Request, url: str):

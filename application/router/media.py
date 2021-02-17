@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, status, File, UploadFile
 import requests
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse, JSONResponse, FileResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Depends, Request, BackgroundTasks
 from typing import Optional
@@ -11,7 +11,7 @@ import os
 import uuid
 import shutil
 import imghdr
-from PIL import Image
+from PIL import Image, ImageOps, ImageChops
 import math
 import time
 
@@ -24,8 +24,21 @@ def imageCompression(imageName: str = None):
         x2, y2 = math.floor(x-50), math.floor(y-20)
         antiAliasedImage = originalImage.resize((x2,y2),Image.ANTIALIAS)
         antiAliasedImage.save(os.path.join(config.media_path, imageName), quality=60, optimize=True)
+
+        # Thumbnail
+        size = (300,300)
+        antiAliasedImage.thumbnail(size, Image.ANTIALIAS)
+        image_size = antiAliasedImage.size
+
+        thumb = antiAliasedImage.crop( (0, 0, size[0], size[1]) )
+        offset_x = int(max( (size[0] - image_size[0]) / 2, 0 ))
+        offset_y = int(max( (size[1] - image_size[1]) / 2, 0 ))
+
+        thumb = ImageChops.offset(thumb, offset_x, offset_y)
+        thumb.save(os.path.join(config.thumbnail_path, imageName))
+        
     except Exception as e:
-        pass
+        print(e)
 
 @router.post("/media/upload")
 async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image: UploadFile = File(...)):
@@ -39,8 +52,25 @@ async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image
         serverDestination.close()
         background_tasks.add_task(imageCompression, imageName=fileName)
         return {
-            "file_name": fileName
+            "file_name": fileName,
+            "preview": "http://{}:{}/media/{}/original".format("localhost", "8080",fileName),
+            "thumbnail_preview": "http://{}:{}/media/{}/thumb".format("localhost", "8080",fileName)
         }
+    except Exception as e:
+        return {
+			"error": {
+				"status": True,
+				"message": str(e),
+				"code": 500
+			}
+		}
+    
+@router.get("/media/{imageFileName:str}/{format:str}")
+async def getImage(request: Request, imageFileName: str, format: str):
+    try:
+        if format == "thumb":
+            return FileResponse(config.thumbnail_path + imageFileName)
+        return FileResponse(config.media_path + imageFileName)
     except Exception as e:
         return {
 			"error": {

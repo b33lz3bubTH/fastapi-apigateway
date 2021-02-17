@@ -8,5 +8,6 @@ class APPSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ALGORITHM: str = "HS256"
     media_path: str = "/home/sourav/Documents/py-fast-api-gateway/uploads/"
+    thumbnail_path: str = "/home/sourav/Documents/py-fast-api-gateway/uploads/thumb/"
 
 config = APPSettings()
