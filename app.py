@@ -31,7 +31,7 @@ async def GETApiGateway(request: Request, url: str):
 			req = requests.get(forwarding_url)
 			return json.loads(req.content)
 		else:
-			raise HTTPException(status_code=404, detail="Route Not Present")
+			raise Exception("Route Not Present")
 	
 	except Exception as e:
 		return {
@@ -57,7 +57,8 @@ async def POSTApiGateway(request: Request, url: str):
 			req = requests.post(forwarding_url, json=jsonable_encoder(inputParam))
 			return json.loads(req.content)
 		else:
-			raise HTTPException(status_code=404, detail="Route Not Present")
+			raise Exception("Route Not Present")
+
 
 	except Exception as e:
 		return {

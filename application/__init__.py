@@ -1,6 +1,7 @@
-from application.router import auth
+from application.router import auth, media
 
 def getRoutes():
 	return [
-		auth.router
+		auth.router,
+		media.router
 	]
