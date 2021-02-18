@@ -10,6 +10,10 @@ async def userDataFetch(user_id):
 async def AdminDataFetch(user_id):
     return {"admin": user_id, "msg": "FETCHED SUCCESS FULLY", "code": 200}
 
+@app.post("/admin/{user_id}")
+async def AdminDataFetch(user_id):
+    return {"admin": user_id, "msg": "Posted SUCCESS FULLY", "code": 200}
+
 @app.post("/admin/{user_id}/posts")
 async def AdminDataPost(user_id: str):
     return {"admin": user_id, "msg": "POSTED SUCCESS FULLY", "code": 200}

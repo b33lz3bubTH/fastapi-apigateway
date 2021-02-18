@@ -4,15 +4,16 @@ endpoint_definations = {
 		"port": "8000",
 		"auth": {
 			"GET": {
-				"required" : False
+				"required" : True
 			},
 			"POST": {
-				"required" : True
+				"required" : False
 			}
 		},
 		"excluded_routes": [
-			("GET", "admin/:user_id"),
-			("POST", "admin/:user_id/posts")
+			# ("GET", "admin/:user_id"),
+			# ("POST", "admin/:user_id"),
+			# ("POST", "admin/:user_id/posts")
 		]
 	}
 }

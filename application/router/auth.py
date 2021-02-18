@@ -37,8 +37,14 @@ async def refreshToken(request: Request):
             detail="JWT Decode Failed",
             headers={"www-authenticate": "bearer"}
             )
+    except HTTPException as e:
+        return {
+            "error": e
+        }
     except Exception as e:
-        return e
+        return {
+            "error": str(e)
+        }
 
 class APILoginData(BaseModel):
     username: str

@@ -56,24 +56,32 @@ async def GETApiGateway(request: Request, url: str):
 					if not request.headers.get("www-authenticate") or len(request.headers.get("www-authenticate")) < 10:
 						raise HTTPException(status_code=404, 
 							detail="JWT Required",
-							headers={"www-authenticate": "bearer"}
+							headers={"www-authenticate": "bearer <TOKEN> Needed"}
 						)
 					jwtToken = request.headers["www-authenticate"]
 					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
-			print("FORWADING: ",forwarding_url)
 			req = requests.get(forwarding_url)
 			return json.loads(req.content)
 		else:
 			raise HTTPException(status_code=404, detail="Route not found")
 
 	except jwt.exceptions.DecodeError as e:
-		return HTTPException(status_code=500, 
-		detail="JWT Decode Failed",
-		headers={"www-authenticate": "bearer"}
-		)
+		return {
+			"error": HTTPException(
+				status_code=500, 
+				detail="JWT Decode Failed", 
+				headers={"www-authenticate": "bearer"}
+			)
+		}
+	except HTTPException as e:
+		return {
+			"error": e
+		}
 	except Exception as e:
-		return e
+		return {
+			"error": str(e)
+		}
 
 @app.post("/{url:path}")
 async def POSTApiGateway(request: Request, url: str):
@@ -93,15 +101,24 @@ async def POSTApiGateway(request: Request, url: str):
 					jwtToken = request.headers["www-authenticate"]
 					payload = jwt.decode(jwtToken, config.SECRET_KEY,  algorithms=[config.ALGORITHM])
 			forwarding_url = ("http://{}:{}/{}".format(endpoint_def["host"], endpoint_def["port"],'/'.join(endpoint_url[1:])))
+			print("FORWARDING: ", forwarding_url)
 			req = requests.post(forwarding_url, json=jsonable_encoder(inputParam))
 			return json.loads(req.content)
 		else:
 			raise HTTPException(status_code=404, detail="Route not found")
 
 	except jwt.exceptions.DecodeError as e:
-		return HTTPException(status_code=500, 
-			detail="JWT Decode Failed",
-			headers={"www-authenticate": "bearer"}
+		return {
+			"error": HTTPException(status_code=500, 
+				detail="JWT Decode Failed",
+				headers={"www-authenticate": "bearer"}
 			)
+		}
+	except HTTPException as e:
+		return {
+			"error": e
+		}
 	except Exception as e:
-		return e
+		return {
+			"error": str(e)
+		}
