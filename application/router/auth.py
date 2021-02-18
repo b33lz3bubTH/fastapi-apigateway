@@ -23,9 +23,11 @@ async def refreshToken(request: Request):
             algorithms=[config.ALGORITHM],
             options={"verify_exp": False},
         )
+        currentTime = datetime.datetime.utcnow()
         newJwtToken = jwt.encode({
-                **payload, 
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60)
+                **payload,
+                "iat": currentTime,
+                "exp": currentTime + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60)
             }, config.SECRET_KEY, algorithm=config.ALGORITHM)
         return {
             "METHOD": "GET",
@@ -54,8 +56,10 @@ class APILoginData(BaseModel):
 async def authentication(inputParam: APILoginData):
     # password verification then doing sending Token
     # {name: "Sourav", password: "HA$HED", email: "xx@gmail.com", phone: "", address: {} }
+    currentTime = datetime.datetime.utcnow()
     payload = {
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60),
+        "exp": currentTime + datetime.timedelta(seconds=config.ACCESS_TOKEN_EXPIRE_MINUTES*60),
+        "iat": currentTime,
         "data": {
             "name": "",
             "username": inputParam.username,

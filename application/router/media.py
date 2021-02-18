@@ -17,26 +17,27 @@ import time
 
 router = APIRouter()
 
-def imageCompression(imageName: str = None):
+def imageCompression(imageName: str = None, imgType: str = None):
     try:
         originalImage = Image.open(os.path.join(config.media_path, imageName))
         x, y = originalImage.size
         x2, y2 = math.floor(x-50), math.floor(y-20)
         antiAliasedImage = originalImage.resize((x2,y2),Image.ANTIALIAS)
         antiAliasedImage.save(os.path.join(config.media_path, imageName), quality=60, optimize=True)
-
         # Thumbnail
-        size = (300,300)
+        size = config.thumnail_size
+        mode = "RGB"
+        if imgType == "png":
+            mode = "RGBA"
         antiAliasedImage.thumbnail(size, Image.ANTIALIAS)
-        image_size = antiAliasedImage.size
-
-        thumb = antiAliasedImage.crop( (0, 0, size[0], size[1]) )
-        offset_x = int(max( (size[0] - image_size[0]) / 2, 0 ))
-        offset_y = int(max( (size[1] - image_size[1]) / 2, 0 ))
-
-        thumb = ImageChops.offset(thumb, offset_x, offset_y)
-        thumb.save(os.path.join(config.thumbnail_path, imageName))
-        
+        background = Image.new(mode, size, (255, 255, 255, 0))
+        background.paste(
+            antiAliasedImage, (
+                    int((size[0] - antiAliasedImage.size[0]) / 2),
+                    int((size[1] - antiAliasedImage.size[1]) / 2)
+                )
+        )
+        background.save(os.path.join(config.thumbnail_path, imageName))
     except Exception as e:
         print(e)
 
@@ -51,7 +52,7 @@ async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image
         serverDestination = open(os.path.join(config.media_path, fileName), 'wb+')
         shutil.copyfileobj(image.file, serverDestination)
         serverDestination.close()
-        background_tasks.add_task(imageCompression, imageName=fileName)
+        background_tasks.add_task(imageCompression, imageName=fileName, imgType=imgType)
         return {
             "file_name": fileName,
             "preview": "http://{}:{}/media/{}/original".format("localhost", config.PORT, fileName),
