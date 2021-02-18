@@ -51,7 +51,7 @@ async def GETApiGateway(request: Request, url: str):
 		endpoint_url = url.split("/")
 		endpoint_def = endpoint_definations.get(endpoint_url[0])
 		if endpoint_def:
-			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
+			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:], method):
 				if(endpoint_def["auth"][method]["required"]):
 					if not request.headers.get("www-authenticate") or len(request.headers.get("www-authenticate")) < 10:
 						raise HTTPException(status_code=404, 
@@ -83,7 +83,7 @@ async def POSTApiGateway(request: Request, url: str):
 		endpoint_url = url.split("/")
 		endpoint_def = endpoint_definations.get(endpoint_url[0])
 		if endpoint_def:
-			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:]):
+			if not exclusion_check(endpoint_def["excluded_routes"], endpoint_url[1:], method):
 				if(endpoint_def["auth"][method]["required"]):
 					if not request.headers.get("www-authenticate") or len(request.headers.get("www-authenticate")) < 10:
 						raise HTTPException(status_code=404, 

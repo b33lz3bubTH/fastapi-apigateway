@@ -1,6 +1,8 @@
-def exclusion_check(exclude_list, URL):
-    for route_def in exclude_list:
+def exclusion_check(exclude_list, URL, method):
+    for (route_method, route_def) in exclude_list:
+        if(route_method != method): continue
         route_frags = route_def.split("/")
+        if(len(route_frags) != len(URL)): continue
         i = 0
         flag = True
         for route_frag in route_frags:

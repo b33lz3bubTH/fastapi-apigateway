@@ -14,6 +14,10 @@ async def AdminDataFetch(user_id):
 async def AdminDataPost(user_id: str):
     return {"admin": user_id, "msg": "POSTED SUCCESS FULLY", "code": 200}
 
+@app.get("/admin/{user_id}/posts")
+async def AdminDataPost(user_id: str):
+    return {"admin": user_id, "msg": "GET SUCCESS FULLY", "code": 200}
+
 class UserInputModel(BaseModel):
     name: str
     description: str
