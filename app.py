@@ -15,7 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
-
+from fastapi.middleware.cors import CORSMiddleware
 from utils import exclusion_check
 
 class LimitUploadSize(BaseHTTPMiddleware):
@@ -34,6 +34,15 @@ class LimitUploadSize(BaseHTTPMiddleware):
 
 app = FastAPI(title=config.app_name)
 app.add_middleware(LimitUploadSize, max_upload_size=3_000_000)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 routerPaths = getRoutes()
 for routerPath in routerPaths:

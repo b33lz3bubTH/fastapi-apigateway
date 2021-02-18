@@ -42,15 +42,16 @@ def imageCompression(imageName: str = None, imgType: str = None):
         print(e)
 
 @router.post("/media/upload")
-async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image: UploadFile = File(...)):
+async def mediaUpload(request: Request, background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     try:
-        imgType = imghdr.what(image.file)
+        imgType = imghdr.what(file.file)
+        print("Current Type: ", imgType)
         if not (imgType == "png" or imgType == "jpeg"):
-            raise HTTPException(status_code=404, 
+            raise HTTPException(status_code=500, 
                 detail="Image Files only Allowed (JPEG AND PNG)")
         fileName = str(uuid.uuid4()) + '.{}'.format(imgType)
         serverDestination = open(os.path.join(config.media_path, fileName), 'wb+')
-        shutil.copyfileobj(image.file, serverDestination)
+        shutil.copyfileobj(file.file, serverDestination)
         serverDestination.close()
         background_tasks.add_task(imageCompression, imageName=fileName, imgType=imgType)
         return {
