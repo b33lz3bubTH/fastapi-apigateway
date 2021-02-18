@@ -1,19 +1,34 @@
-# fastapi-apigateway
+# Api Gateway
+### _with fastAPI_
 
-in endpoint_defination.py, add your apis, put if it needed jwt authentication or not.
+>Just Define your damm api in **endpoint_defination.py** file, and you're good to go.
 
-add endpoint in endpoint_definations = {
-    "api-endpoint-name":{
-        "host": "where it is running",
-        "port": "on which port",
-        "auth": {
-            "GET": "Does all req of this api new jwt verification",
-            "POST": "Does all req of this api new jwt verification"
-        }
-    }
+```
+endpoint_definations = {
+	"user-data-api": {
+		"host": "localhost",
+		"port": "8000",
+		"auth": {
+			"GET": {
+				"required" : True
+			},
+			"POST": {
+				"required" : False
+			}
+		},
+		"excluded_routes": [
+			("GET", "admin/:user_id"),
+			("POST", "admin/:user_id"),
+			("POST", "admin/:user_id/posts"),
+            # ROUTES HERE WONT REQUIRE JWT CHECK, even though all POST/GET req requires VALIDATION
+		]
+	}
 }
+```
+***
 
 example:
-    node api : http://localhost:9000/user/10/post
+    
+    node api: http://localhost:9000/user/10/post
 
     with gateway: http://localhost:8000/user-endpoint-api/user/10/post
