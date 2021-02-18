@@ -54,8 +54,8 @@ async def mediaUpload(request: Request, background_tasks: BackgroundTasks, image
         background_tasks.add_task(imageCompression, imageName=fileName)
         return {
             "file_name": fileName,
-            "preview": "http://{}:{}/media/{}/original".format("localhost", "8080",fileName),
-            "thumbnail_preview": "http://{}:{}/media/{}/thumb".format("localhost", "8080",fileName)
+            "preview": "http://{}:{}/media/{}/original".format("localhost", config.PORT, fileName),
+            "thumbnail_preview": "http://{}:{}/media/{}/thumb".format("localhost", config.PORT, fileName)
         }
     except HTTPException as e:
         return {

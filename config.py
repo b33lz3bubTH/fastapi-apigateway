@@ -11,5 +11,7 @@ class APPSettings(BaseSettings):
     thumbnail_path: str = "/home/sourav/Documents/py-fast-api-gateway/uploads/thumb/"
     mongo_database_url: str = ""
     mysql_database_url: str = ""
+    PORT: int = 8080
+    HOST: str = '0.0.0.0'
 
 config = APPSettings()
