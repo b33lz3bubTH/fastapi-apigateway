@@ -22,6 +22,9 @@ endpoint_definations = {
 			("POST", "admin/:user_id/posts"),
             # ROUTES HERE WONT REQUIRE JWT CHECK, even though all POST/GET req requires VALIDATION
 		]
+	},
+	"product-data-api":{
+		port: 9002
 	}
 }
 ```
@@ -30,5 +33,12 @@ endpoint_definations = {
 example:
     
     node api: http://localhost:9000/user/10/post
+    python api: http://localhost:9002/products/10-ab
 
-    with gateway: http://localhost:8000/user-endpoint-api/user/10/post
+    with gateway: http://localhost:8000/user-data-api/user/10/post
+    with gateway: http://localhost:8000/product-data-api/products/10-ab
+    
+    
+    
+### ovio, this makes core apis slow, but you get alot of flexibility, plus you must also look how to make fast apis fast, cause in general fast api's development is fast, execution is slow like flask and other python framework.
+###  future: will add put and delete methods.
